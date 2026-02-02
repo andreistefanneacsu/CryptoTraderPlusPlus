@@ -1,23 +1,23 @@
 cmake_minimum_required(VERSION 3.26)
 
-# Păstrăm numele "oop" pentru ca scripturile de CI să funcționeze corect
+# Păstrăm numele "oop" pentru compatibilitatea cu scripturile de CI
 project(oop)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Dezactivăm avertismentele ca erori pentru SFML
+# Dezactivăm avertismentele ca erori
 set(WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
 
-# REPARARE CRITICĂ: Dezactivăm sanitizers care cauzează eroarea de "generator expression"
-# Această linie oprește codul defect din CustomStdlibAndSanitizers.cmake
+# REPARARE ASan: Încercăm să blocăm execuția scriptului defect
 set(USE_SANITIZERS OFF CACHE BOOL "" FORCE)
+set(ENABLE_ASAN OFF CACHE BOOL "" FORCE)
+set(ENABLE_UBSAN OFF CACHE BOOL "" FORCE)
 
 include(FetchContent)
 set(FETCHCONTENT_QUIET OFF)
 
-# Setup SFML
 FetchContent_Declare(
     SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
@@ -60,10 +60,11 @@ set(SURSE_FISIERE
 add_executable(${PROJECT_NAME} ${SURSE_FISIERE})
 
 ###############################################################################
-# Configurare Target
+# Configurare Proiect
 ###############################################################################
 
-# Includem flag-urile după add_executable
+# Includem flag-urile, dar dacă CustomStdlibAndSanitizers crapă, 
+# va trebui să modificăm direct acel fișier.
 include(cmake/CompilerFlags.cmake OPTIONAL)
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
@@ -80,7 +81,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 ###############################################################################
-# Instalare și Directoare (Necesar pentru macOS și CI)
+# Deployment (Pentru macOS launcher)
 ###############################################################################
 
 if(NOT DEFINED DESTINATION_DIR)
@@ -95,7 +96,6 @@ if(APPLE)
     endif()
 endif()
 
-# Creăm directoarele de date în folderul de build
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${PROJECT_NAME}>/date/utilizatori
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${PROJECT_NAME}>/date/piata
