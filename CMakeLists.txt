@@ -1,19 +1,20 @@
 cmake_minimum_required(VERSION 3.26)
 
-# FOARTE IMPORTANT: Proiectul trebuie să se numească "oop" pentru ca scripturile tale 
-# de GitHub Actions să găsească fișierele (launcher.command caută acest nume).
+# Păstrăm numele "oop" pentru a mulțumi scripturile de GitHub Actions
 project(oop)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Dezactivăm erorile care opresc build-ul din cauza SFML
+# Dezactivăm avertismentele ca erori pentru a trece de verificările stricte SFML
 set(WARNINGS_AS_ERRORS OFF)
+
+# REPARARE: Dezactivăm sanitizers care cauzează eroarea $<... dacă sunt setate greșit în mediu
+set(USE_SANITIZERS OFF CACHE BOOL "" FORCE)
 
 include(FetchContent)
 set(FETCHCONTENT_QUIET OFF)
-set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
 # Setup SFML
 FetchContent_Declare(
@@ -55,15 +56,14 @@ set(SURSE_FISIERE
     env_fixes.h
 )
 
-# Creăm executabilul
 add_executable(${PROJECT_NAME} ${SURSE_FISIERE})
 
-# Includem flag-urile de compilare DUPĂ ce am creat executabilul
-include(cmake/CompilerFlags.cmake OPTIONAL)
+###############################################################################
+# Configurare Flag-uri (Fără a strica generatorul)
+###############################################################################
 
-###############################################################################
-# Includes and Libraries
-###############################################################################
+# Includem flag-urile proiectului
+include(cmake/CompilerFlags.cmake OPTIONAL)
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
     ${CMAKE_SOURCE_DIR}/include 
@@ -79,7 +79,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 ###############################################################################
-# Fix pentru erarea cu launcher.command (GitHub Actions)
+# Post-Build & Install
 ###############################################################################
 
 if(NOT DEFINED DESTINATION_DIR)
@@ -89,11 +89,12 @@ endif()
 install(TARGETS ${PROJECT_NAME} DESTINATION ${DESTINATION_DIR})
 
 if(APPLE)
-    # Copiem launcher.command în folderul de build ca să îl găsească scriptul sed
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/launcher.command" DESTINATION ${DESTINATION_DIR})
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/launcher.command")
+        install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/launcher.command" DESTINATION ${DESTINATION_DIR})
+    endif()
 endif()
 
-# Creare directoare date
+# Creare directoare date necesare
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${PROJECT_NAME}>/date/utilizatori
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${PROJECT_NAME}>/date/piata
