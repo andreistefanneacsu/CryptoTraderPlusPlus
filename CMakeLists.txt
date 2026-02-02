@@ -1,16 +1,17 @@
 cmake_minimum_required(VERSION 3.26)
 
-# Păstrăm numele "oop" pentru a mulțumi scripturile de GitHub Actions
+# Păstrăm numele "oop" pentru ca scripturile de CI să funcționeze corect
 project(oop)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Dezactivăm avertismentele ca erori pentru a trece de verificările stricte SFML
-set(WARNINGS_AS_ERRORS OFF)
+# Dezactivăm avertismentele ca erori pentru SFML
+set(WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
 
-# REPARARE: Dezactivăm sanitizers care cauzează eroarea $<... dacă sunt setate greșit în mediu
+# REPARARE CRITICĂ: Dezactivăm sanitizers care cauzează eroarea de "generator expression"
+# Această linie oprește codul defect din CustomStdlibAndSanitizers.cmake
 set(USE_SANITIZERS OFF CACHE BOOL "" FORCE)
 
 include(FetchContent)
@@ -31,7 +32,7 @@ if(NOT APPLE AND UNIX)
 endif()
 
 ###############################################################################
-# Source Files
+# Fișiere Sursă
 ###############################################################################
 
 set(SURSE_FISIERE
@@ -59,10 +60,10 @@ set(SURSE_FISIERE
 add_executable(${PROJECT_NAME} ${SURSE_FISIERE})
 
 ###############################################################################
-# Configurare Flag-uri (Fără a strica generatorul)
+# Configurare Target
 ###############################################################################
 
-# Includem flag-urile proiectului
+# Includem flag-urile după add_executable
 include(cmake/CompilerFlags.cmake OPTIONAL)
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
@@ -79,7 +80,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 ###############################################################################
-# Post-Build & Install
+# Instalare și Directoare (Necesar pentru macOS și CI)
 ###############################################################################
 
 if(NOT DEFINED DESTINATION_DIR)
@@ -94,7 +95,7 @@ if(APPLE)
     endif()
 endif()
 
-# Creare directoare date necesare
+# Creăm directoarele de date în folderul de build
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${PROJECT_NAME}>/date/utilizatori
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${PROJECT_NAME}>/date/piata
