@@ -10,8 +10,8 @@
 namespace fs = std::filesystem;
 
 Piata::Piata() :
-    ruleaza_actualizare(true),
-    fisier_date("date/piata/piata.dat") {
+    fisier_date("date/piata/piata.dat"),
+    ruleaza_actualizare(true) {
 
     std::string dir_path = "date/piata";
     if (!fs::exists(dir_path)) {
@@ -25,7 +25,6 @@ Piata::Piata() :
     if (monede.empty()) {
         initializeaza();
     }
-
 }
 
 Piata::~Piata() {
@@ -181,16 +180,6 @@ void Piata::salveaza_in_fisier() {
     fisier.close();
 }
 
-/*
-void Piata::actualizare_automata() {
-    while (ruleaza_actualizare) {
-        std::this_thread::sleep_for(std::chrono::seconds(30));
-        actualizeaza_piata();
-        salveaza_in_fisier();
-    }
-}
-*/
-
 void Piata::initializeaza() {
     if (!monede.empty()) return;
 
@@ -235,8 +224,6 @@ void Piata::afiseaza_piata() const {
         return;
     }
 
-    std::setlocale(LC_ALL, "ro_RO.UTF-8");
-
     std::cout << "\n=== PIATA CRYPTO ===\n";
     std::cout << std::left << std::setw(10) << "Simbol"
               << std::setw(20) << "Nume"
@@ -259,7 +246,6 @@ void Piata::afiseaza_piata() const {
                   << std::setw(15) << std::setprecision(1) << moneda->obtine_volatilitate()
                   << std::setw(15) << tip << "\n";
     }
-
 }
 
 double Piata::calculeaza_valoare_totala_piata() const {
@@ -330,4 +316,4 @@ void Piata::afiseaza_detalii_moneda(const std::string& simbol) const {
     std::cout << "Moneda cu simbolul " << simbol << " nu a fost gasita.\n";
 }
 
-
+}
