@@ -9,6 +9,7 @@
 
 namespace fs = std::filesystem;
 
+// Am inversat ordinea aici pentru a corespunde cu declararea din Piata.hpp
 Piata::Piata() :
     fisier_date("date/piata/piata.dat"),
     ruleaza_actualizare(true) {
@@ -102,6 +103,7 @@ void Piata::incarca_din_fisier() {
                 }
             }
         } catch (...) {
+            // Ignorăm erorile de formatare la citire
         }
     }
     fisier.close();
@@ -314,6 +316,4 @@ void Piata::afiseaza_detalii_moneda(const std::string& simbol) const {
         }
     }
     std::cout << "Moneda cu simbolul " << simbol << " nu a fost gasita.\n";
-}
-
 }
